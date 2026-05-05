@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  mongo:
+    image: mongo:6
+    container_name: muji_mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  server:
+    build: ./server
+    container_name: muji_server
+    ports:
+      - "5001:5001"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/muji_shop
+      - JWT_SECRET=muji_secret_key_2024
+      - PORT=5001
+      - CLIENT_URL=http://localhost:5173
+      - EMAIL_USER=dangngockimkhanh130605@gmail.com
+      - EMAIL_PASS=khnt mnhv wvsv ixqx
+    depends_on:
+      - mongo
+
+  client:
+    build: ./client
+    container_name: muji_client
+    ports:
+      - "5173:5173"
+    depends_on:
+      - server
+
+volumes:
+  mongo_data:
