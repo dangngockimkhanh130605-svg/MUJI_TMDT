@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const path = require("path");
 require("dotenv").config();
 
 const app = express();
@@ -20,6 +21,12 @@ app.use(express.json());
 
 // routes
 app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/products", require("./routes/productRoutes")); 
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/api/upload", require("./routes/uploadRoutes"));
+app.use("/api/admin", require("./routes/adminRoutes"));
+app.use("/api/cart", require("./routes/cartRoutes"));
+app.use("/api/orders", require("./routes/orderRoutes"));
 
 // connect DB
 mongoose.connect(process.env.MONGO_URI)

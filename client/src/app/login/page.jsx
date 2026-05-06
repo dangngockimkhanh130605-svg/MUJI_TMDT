@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { login } from "@/services/authService";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search, ShoppingBag } from "lucide-react";
+import { Search, ShoppingBag, Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -9,14 +9,17 @@ export default function Login() {
   const [searchParams] = useSearchParams();
   const verified = searchParams.get("verified");
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleLogin = async () => {
     try {
       const res = await login(form);
       localStorage.setItem("token", res.data.token);
-      navigate("/home");
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      const role = res.data.user.role;
+      navigate(role === "admin" ? "/admin/products" : "/home");
     } catch (err) {
-      setError(err.response?.data?.msg || "Sai email hoặc mật khẩu");  // ✅ thay alert
+      setError(err.response?.data?.msg || "Sai email hoặc mật khẩu");
     }
   };
 
@@ -93,12 +96,21 @@ export default function Login() {
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Mật khẩu</label>
             <span className="text-xs cursor-pointer hover:underline" style={{ color: "#80001C" }}>QUÊN?</span>
           </div>
-          <input
-            type="password"
-            placeholder="••••••••"
-            className="border border-gray-300 px-3 py-2 text-sm mb-6 focus:outline-none focus:border-gray-500"
-            onChange={e => setForm({ ...form, password: e.target.value })}
-          />
+          <div className="relative mb-6">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="••••••••"
+              className="w-full border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-gray-500 pr-10"
+              onChange={e => setForm({ ...form, password: e.target.value })}
+            />
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+            </button>
+          </div>
 
           <button
             onClick={handleLogin}

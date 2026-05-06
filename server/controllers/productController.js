@@ -2,10 +2,11 @@ const Product = require("../models/Product");
 
 // Lấy tất cả sản phẩm (có filter & search)
 exports.getProducts = async (req, res) => {
-  const { category, material, minPrice, maxPrice, search, sort } = req.query;
+  const { category, material, minPrice, maxPrice, search, sort, subCategory } = req.query;
   let filter = {};
 
   if (category) filter.category = category;
+  if (subCategory) filter.subCategory = subCategory; // ✅ thêm dòng này
   if (material) filter.material = { $regex: material, $options: "i" };
   if (minPrice || maxPrice) filter.price = { $gte: minPrice || 0, $lte: maxPrice || 999999999 };
   if (search) filter.name = { $regex: search, $options: "i" };
@@ -13,7 +14,7 @@ exports.getProducts = async (req, res) => {
   let sortOption = {};
   if (sort === "price_asc") sortOption.price = 1;
   else if (sort === "price_desc") sortOption.price = -1;
-  else sortOption.createdAt = -1; // New arrivals default
+  else sortOption.createdAt = -1;
 
   const products = await Product.find(filter).sort(sortOption);
   res.json(products);
