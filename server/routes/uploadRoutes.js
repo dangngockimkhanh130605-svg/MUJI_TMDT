@@ -15,7 +15,9 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.post("/", auth, isAdmin, upload.single("image"), (req, res) => {
-  res.json({ url: `${import.meta.env.VITE_API_URL}/uploads/${req.file.filename}` });
+    res.json({
+        url: `${process.env.BASE_URL}/uploads/${req.file.filename}`
+    });
 });
 
 module.exports = router;
