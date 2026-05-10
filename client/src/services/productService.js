@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = "http://localhost:5001/api/products";
+const API = `${import.meta.env.VITE_API_URL}/api/products`;
 
 const getHeaders = () => ({
   headers: { Authorization: localStorage.getItem("token") }

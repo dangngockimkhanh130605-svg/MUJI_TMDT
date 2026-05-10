@@ -70,7 +70,7 @@ export default function AdminProducts() {
         try {
             const formData = new FormData();
             formData.append("image", file);
-            const res = await fetch("http://localhost:5001/api/upload", {
+            const res = await fetch("import.meta.env.VITE_API_URL/api/upload", {
             method: "POST",
             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
             body: formData,

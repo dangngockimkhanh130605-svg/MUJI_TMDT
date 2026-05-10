@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = "http://localhost:5001/api/orders";
+const API = `${import.meta.env.VITE_API_URL}/api/orders`;
 const getHeaders = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });
 
 export const createOrder = (data) => axios.post(API, data, getHeaders());
