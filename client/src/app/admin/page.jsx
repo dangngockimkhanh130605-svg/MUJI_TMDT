@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search, User, TrendingUp, Package, BarChart2, AlertTriangle, Download } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { useEffect } from "react";
-import { getDashboardStats, getReportStats } from "@/services/adminService";
+import { getAllOrders, updateOrderStatus, getDashboardStats, getReportStats } from "@/services/adminService";
 
 const revenueData = [
     { day: "MON", revenue: 32000 },
@@ -41,8 +41,10 @@ export default function AdminDashboard() {
     const [showDropdown, setShowDropdown] = useState(false);
 
     const renderContent = () => {
+        if (activePage === "INVENTORY") return <InventoryPage />; 
         if (activePage === "REPORTS") return <ReportsPage />;
         if (activePage === "SETTINGS") return <SettingsPage />;
+        if (activePage === "ORDERS") return <OrdersPage />;
         return <DashboardContent />;
     };
 
@@ -100,6 +102,16 @@ export default function AdminDashboard() {
                             style={activePage === "SETTINGS" ? { borderColor: "#80001C" } : {}}
                         >
                             SETTINGS
+                        </span>
+
+                        <span
+                            onClick={() => setActivePage("ORDERS")}
+                            className={`cursor-pointer pb-1 transition ${activePage === "ORDERS"
+                                ? "font-bold border-b-2 text-gray-900"
+                                : "text-gray-400 hover:text-gray-700"}`}
+                            style={activePage === "ORDERS" ? { borderColor: "#80001C" } : {}}
+                            >
+                            ORDERS
                         </span>
                     </nav>
                 </div>
@@ -385,4 +397,106 @@ function SettingsPage() {
             </div>
         </>
     );
+}
+
+function OrdersPage() {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const STATUS_OPTIONS = ["pending", "processing", "in_transit", "delivered", "cancelled"];
+  const STATUS_LABEL = {
+    pending: "Chờ xác nhận",
+    processing: "Đang xử lý",
+    in_transit: "Đang giao",
+    delivered: "Đã giao",
+    cancelled: "Đã huỷ",
+  };
+  const STATUS_COLOR = {
+    pending: "text-amber-600 bg-amber-50",
+    processing: "text-blue-600 bg-blue-50",
+    in_transit: "text-sky-600 bg-sky-50",
+    delivered: "text-green-600 bg-green-50",
+    cancelled: "text-red-600 bg-red-50",
+  };
+
+  useEffect(() => {
+    getAllOrders().then(res => { setOrders(res.data); setLoading(false); });
+  }, []);
+
+  const handleStatusChange = async (id, status) => {
+    await updateOrderStatus(id, status);
+    setOrders(prev => prev.map(o => o._id === id ? { ...o, status } : o));
+  };
+
+  if (loading) return <div className="text-center py-20 text-gray-400 text-sm">Đang tải...</div>;
+
+  return (
+    <>
+      <div className="mb-6">
+        <h1 className="text-sm font-semibold text-gray-700">Quản lý đơn hàng</h1>
+        <p className="text-xs text-gray-400 mt-1">Xem và cập nhật trạng thái đơn hàng.</p>
+      </div>
+
+      <div className="bg-white border border-gray-200">
+        <table className="w-full text-xs">
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr>
+              {["Mã đơn", "Khách hàng", "Ngày đặt", "Tổng tiền", "Sản phẩm", "Trạng thái", "Cập nhật"].map(h => (
+                <th key={h} className="px-4 py-3 text-left text-gray-500 uppercase tracking-widest font-normal">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {orders.length === 0 && (
+              <tr><td colSpan={7} className="text-center py-12 text-gray-400">Chưa có đơn hàng nào</td></tr>
+            )}
+            {orders.map(order => (
+              <tr key={order._id} className="border-t border-gray-100 hover:bg-gray-50">
+                <td className="px-4 py-3 font-medium text-gray-700">{order.orderNumber}</td>
+                <td className="px-4 py-3 text-gray-600">
+                  <p>{order.user?.name || "—"}</p>
+                  <p className="text-gray-400">{order.user?.email}</p>
+                </td>
+                <td className="px-4 py-3 text-gray-400">
+                  {new Date(order.createdAt).toLocaleDateString("vi-VN")}
+                </td>
+                <td className="px-4 py-3 font-semibold" style={{ color: "#80001C" }}>
+                  {Number(order.total).toLocaleString("vi-VN")}đ
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex gap-1">
+                    {order.items.slice(0, 3).map((item, i) => (
+                      <img key={i} src={item.image || "https://via.placeholder.com/30"}
+                        alt={item.name} className="w-8 h-8 object-cover bg-gray-100" />
+                    ))}
+                    {order.items.length > 3 && (
+                      <div className="w-8 h-8 bg-gray-100 flex items-center justify-center text-gray-400">
+                        +{order.items.length - 3}
+                      </div>
+                    )}
+                  </div>
+                </td>
+                <td className="px-4 py-3">
+                  <span className={`px-2 py-1 text-xs font-semibold ${STATUS_COLOR[order.status]}`}>
+                    {STATUS_LABEL[order.status]}
+                  </span>
+                </td>
+                <td className="px-4 py-3">
+                  <select
+                    value={order.status}
+                    onChange={e => handleStatusChange(order._id, e.target.value)}
+                    className="border border-gray-200 px-2 py-1 text-xs bg-white focus:outline-none"
+                  >
+                    {STATUS_OPTIONS.map(s => (
+                      <option key={s} value={s}>{STATUS_LABEL[s]}</option>
+                    ))}
+                  </select>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
 }

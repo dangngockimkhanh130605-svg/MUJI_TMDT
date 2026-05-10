@@ -19,6 +19,8 @@ export default function ProductDetail() {
     const [comment, setComment] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const { addToCart } = useCart();
+    const { cartCount } = useCart();
+    const { refreshCart } = useCart();
 
     const userButtonRef = useRef(null);
     const userDropdownRef = useRef(null);
@@ -52,13 +54,22 @@ export default function ProductDetail() {
         return () => document.removeEventListener("mousedown", handler);
     }, []);
 
-    const handleAddToCart = () => {
+    const handleAddToCart = async () => { 
         setAdding(true);
-        addToCart(product, quantity, selectedSize);
-        setTimeout(() => {
+        try {
+            await addToCart({ productId: id, quantity, size: selectedSize });
+            refreshCart(); 
+
+            setTimeout(() => {
+                setAdding(false);
+                alert("Thêm vào giỏ hàng thành công!");
+            }, 500);
+
+        } catch (error) {
+            console.error("Lỗi khi thêm vào giỏ hàng:", error);
             setAdding(false);
-            alert("Thêm vào giỏ hàng thành công!");
-        }, 500);
+            alert("Có lỗi xảy ra, vui lòng thử lại.");
+        }
     };
 
     const handleSubmitReview = () => {
@@ -133,8 +144,14 @@ export default function ProductDetail() {
                     <button onClick={() => navigate("/products")}>
                         <Search size={20} style={{ color: "#80001C" }} strokeWidth={1.5} />
                     </button>
-                    <button onClick={() => navigate("/cart")}>
-                        <ShoppingBag size={20} style={{ color: "#80001C" }} strokeWidth={1.5} />
+                    <button onClick={() => navigate("/cart")} className="relative">
+                    <ShoppingBag size={20} style={{ color: "#80001C" }} strokeWidth={1.5} />
+                        {cartCount > 0 && (
+                            <span className="absolute -top-2 -right-2 w-4 h-4 rounded-full text-white text-xs flex items-center justify-center font-bold"
+                            style={{ backgroundColor: "#80001C", fontSize: "10px" }}>
+                            {cartCount > 9 ? "9+" : cartCount}
+                            </span>
+                        )}
                     </button>
 
                     {/* USER DROPDOWN */}

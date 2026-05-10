@@ -1,88 +1,37 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { getCart, addToCart as addToCartService } from "@/services/cartService";
 
 const CartContext = createContext();
 
-export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState([]);
+export function CartProvider({ children }) {
+  const [cartCount, setCartCount] = useState(0);
 
-  // Load cart from localStorage khi mount
-  useEffect(() => {
-    const savedCart = localStorage.getItem("cart");
-    if (savedCart) {
-      setCart(JSON.parse(savedCart));
+  const refreshCart = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return setCartCount(0);
+    try {
+      const res = await getCart();
+      const total = res.data.items?.reduce((sum, i) => sum + i.quantity, 0) || 0;
+      setCartCount(total);
+    } catch {
+      setCartCount(0);
     }
-  }, []);
-
-  // Save cart to localStorage khi thay đổi
-  useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
-  }, [cart]);
-
-  const addToCart = (product, quantity = 1, size = null) => {
-    setCart((prevCart) => {
-      const existingItem = prevCart.find(
-        (item) => item._id === product._id && item.size === size
-      );
-
-      if (existingItem) {
-        return prevCart.map((item) =>
-          item._id === product._id && item.size === size
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      }
-
-      return [...prevCart, { ...product, quantity, size }];
-    });
   };
 
-  const removeFromCart = (productId, size = null) => {
-    setCart((prevCart) =>
-      prevCart.filter((item) => !(item._id === productId && item.size === size))
-    );
+   const addToCart = async (data) => { 
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Chưa đăng nhập");
+    await addToCartService(data);
+    await refreshCart();
   };
 
-  const updateQuantity = (productId, size, quantity) => {
-    if (quantity <= 0) {
-      removeFromCart(productId, size);
-      return;
-    }
-
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item._id === productId && item.size === size
-          ? { ...item, quantity }
-          : item
-      )
-    );
-  };
-
-  const clearCart = () => {
-    setCart([]);
-  };
-
-  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  useEffect(() => { refreshCart(); }, []);
 
   return (
-    <CartContext.Provider
-      value={{
-        cart,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-        total,
-      }}
-    >
+    <CartContext.Provider value={{ cartCount, refreshCart, addToCart }}>
       {children}
     </CartContext.Provider>
   );
-};
+}
 
-export const useCart = () => {
-  const context = useContext(CartContext);
-  if (!context) {
-    throw new Error("useCart must be used within CartProvider");
-  }
-  return context;
-};
+export const useCart = () => useContext(CartContext);

@@ -14,7 +14,7 @@ export default function VerifyEmail() {
       return;
     }
 
-    axios.get(`http://localhost:5001/api/auth/verify-email?token=${token}`)
+    axios.get(`${import.meta.env.VITE_API_URL}/api/auth/verify-email?token=${token}`)
       .then(() => {
         setStatus("success");
         setTimeout(() => navigate("/login?verified=true"), 2000);

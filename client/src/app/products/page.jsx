@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search, ShoppingBag, User } from "lucide-react";
 import { getProducts } from "@/services/productService";
+import { useCart } from "@/context/CartContext";
 
 const CATEGORIES = {
     apparel: ["Tops", "Shirts", "Bottoms", "Outerwear", "Knitwear", "Footwear"],
@@ -22,6 +23,7 @@ export default function ProductList() {
     const [search, setSearch] = useState("");
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const { cartCount } = useCart();
 
     useEffect(() => {
         const cat = searchParams.get("category") || "";
@@ -51,7 +53,7 @@ export default function ProductList() {
         <div className="min-h-screen flex flex-col bg-white">
             {/* NAVBAR */}
             <header className="flex items-center justify-between px-8 py-4 border-b border-gray-200 bg-white sticky top-0 z-40">
-                <span onClick={() => navigate("/")} className="text-xl font-bold tracking-widest cursor-pointer" style={{ color: "#80001C" }}>
+                <span onClick={() => navigate("/home")} className="text-xl font-bold tracking-widest cursor-pointer" style={{ color: "#80001C" }}>
                     MUJI
                 </span>
                 <nav className="hidden md:flex items-center gap-8 text-xs tracking-widest">
@@ -70,7 +72,15 @@ export default function ProductList() {
                 </nav>
                 <div className="flex items-center gap-4">
                     <button><Search size={20} style={{ color: "#80001C" }} strokeWidth={1.5} /></button>
-                    <button onClick={() => navigate("/cart")}><ShoppingBag size={20} style={{ color: "#80001C" }} strokeWidth={1.5} /></button>
+                    <button onClick={() => navigate("/cart")} className="relative">
+                    <ShoppingBag size={20} style={{ color: "#80001C" }} strokeWidth={1.5} />
+                        {cartCount > 0 && (
+                            <span className="absolute -top-2 -right-2 w-4 h-4 rounded-full text-white text-xs flex items-center justify-center font-bold"
+                            style={{ backgroundColor: "#80001C", fontSize: "10px" }}>
+                            {cartCount > 9 ? "9+" : cartCount}
+                            </span>
+                        )}
+                    </button>
                     <div className="relative">
                         <button onClick={(e) => { e.stopPropagation(); setShowDropdown(!showDropdown); }}>
                             <User size={20} style={{ color: "#80001C" }} strokeWidth={1.5} />

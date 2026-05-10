@@ -24,6 +24,7 @@ export default function Orders() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
   const navigate = useNavigate();
+  const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -46,7 +47,30 @@ export default function Orders() {
         <div className="flex items-center gap-4">
           <button onClick={() => navigate("/products")}><Search size={20} style={{ color: "#80001C" }} strokeWidth={1.5} /></button>
           <button onClick={() => navigate("/cart")}><ShoppingBag size={20} style={{ color: "#80001C" }} strokeWidth={1.5} /></button>
-          <button onClick={() => navigate("/account")}><User size={20} style={{ color: "#80001C" }} strokeWidth={1.5} /></button>
+          <div className="relative">
+                <button onClick={(e) => { e.stopPropagation(); setShowDropdown(!showDropdown); }}>
+                    <User size={20} style={{ color: "#80001C" }} strokeWidth={1.5} />
+                </button>
+                {showDropdown && (
+                    <div className="absolute right-0 top-8 bg-white shadow-lg w-48 z-50 border border-gray-100">
+                    {[
+                        { label: "Account Information", path: "/account" },
+                        { label: "My Orders", path: "/orders" },
+                    ].map(item => (
+                        <button key={item.path} onClick={() => { navigate(item.path); setShowDropdown(false); }}
+                        className="w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 text-left">
+                        {item.label}
+                        </button>
+                    ))}
+                    <div className="border-t border-gray-100">
+                        <button onClick={() => { localStorage.clear(); navigate("/login"); }}
+                        className="w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 text-left">
+                        Logout
+                        </button>
+                    </div>
+                    </div>
+                )}
+            </div>
         </div>
       </header>
 

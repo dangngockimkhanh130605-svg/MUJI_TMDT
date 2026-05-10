@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Search, ShoppingBag, User } from "lucide-react";
 import { getCart } from "@/services/cartService";
 import { createOrder } from "@/services/orderService";
+import { useCart } from "@/context/CartContext";
 
 export default function Checkout() {
     const [cart, setCart] = useState({ items: [] });
@@ -15,6 +16,8 @@ export default function Checkout() {
         paymentMethod: "credit_card",
     });
     const navigate = useNavigate();
+    const [showDropdown, setShowDropdown] = useState(false);
+    const { refreshCart } = useCart();
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -68,6 +71,7 @@ export default function Checkout() {
 
             console.log("📦 orderData gửi đi:", JSON.stringify(orderData, null, 2));
             await createOrder(orderData);
+            await refreshCart();
             alert("Đặt hàng thành công!");
             navigate("/account");
 
@@ -95,7 +99,30 @@ export default function Checkout() {
                 <div className="flex items-center gap-4">
                     <button onClick={() => navigate("/products")}><Search size={20} style={{ color: "#80001C" }} strokeWidth={1.5} /></button>
                     <button onClick={() => navigate("/cart")}><ShoppingBag size={20} style={{ color: "#80001C" }} strokeWidth={1.5} /></button>
-                    <User size={20} style={{ color: "#80001C" }} strokeWidth={1.5} />
+                    <div className="relative">
+                        <button onClick={(e) => { e.stopPropagation(); setShowDropdown(!showDropdown); }}>
+                            <User size={20} style={{ color: "#80001C" }} strokeWidth={1.5} />
+                        </button>
+                        {showDropdown && (
+                            <div className="absolute right-0 top-8 bg-white shadow-lg w-48 z-50 border border-gray-100">
+                            {[
+                                { label: "Account Information", path: "/account" },
+                                { label: "My Orders", path: "/orders" },
+                            ].map(item => (
+                                <button key={item.path} onClick={() => { navigate(item.path); setShowDropdown(false); }}
+                                className="w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 text-left">
+                                {item.label}
+                                </button>
+                            ))}
+                            <div className="border-t border-gray-100">
+                                <button onClick={() => { localStorage.clear(); navigate("/login"); }}
+                                className="w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 text-left">
+                                🚪 Logout
+                                </button>
+                            </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </header>
 

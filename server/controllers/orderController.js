@@ -60,3 +60,27 @@ exports.getOrderById = async (req, res) => {
     res.status(500).json({ msg: "Lỗi server" });
   }
 };
+
+exports.getAllOrders = async (req, res) => {
+  try {
+    const orders = await Order.find()
+      .populate("user", "name email")
+      .sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ msg: "Lỗi server" });
+  }
+};
+
+exports.updateOrderStatus = async (req, res) => {
+  try {
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status: req.body.status },
+      { new: true }
+    );
+    res.json(order);
+  } catch (err) {
+    res.status(500).json({ msg: "Lỗi server" });
+  }
+};

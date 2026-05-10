@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { register } from "@/services/authService";
 import { Search, ShoppingBag, Eye, EyeOff } from "lucide-react";
+import MUJI from "@/assets/MUJI.jpg";
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -12,8 +13,11 @@ export default function Register() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
+    if (loading) return;
+    setLoading(true);
     setError("");   
     setSuccess("");
 
@@ -24,15 +28,14 @@ export default function Register() {
     }
 
     try {
-      const res = await register({ ...form });
-      setSuccess(res.data.msg);
-      setTimeout(() => {
-        setSuccess("");
-        navigate("/login");
-      }, 2000);
+        const res = await register({ ...form });
+        setSuccess(res.data.msg);
+        setTimeout(() => { setSuccess(""); navigate("/login"); }, 2000);
     } catch (err) {
-      setError(err.response?.data?.msg || "Có lỗi xảy ra");
-      setTimeout(() => setError(""), 5000);
+        setError(err.response?.data?.msg || "Có lỗi xảy ra");
+        setTimeout(() => setError(""), 5000);
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -58,7 +61,7 @@ export default function Register() {
         {/* LEFT - ảnh */}
         <div className="w-1/2 relative hidden md:block bg-gray-100">
           <img
-            src="https://images.unsplash.com/photo-1600369671738-58f5a1c7b4ba?w=800"
+            src={MUJI}
             alt="MUJI"
             className="absolute inset-0 w-full h-full object-cover"
           />
@@ -192,11 +195,12 @@ export default function Register() {
 
           {/* Buttons */}
           <button
-            onClick={handleRegister}
-            style={{ backgroundColor: "#80001C" }}
-            className="text-white text-sm font-semibold tracking-widest py-3 mb-3 hover:opacity-90 transition"
+              onClick={handleRegister}
+              disabled={loading}
+              style={{ backgroundColor: "#80001C" }}
+              className="text-white text-sm font-semibold tracking-widest py-3 mb-3 hover:opacity-90 transition disabled:opacity-50"
           >
-            TẠO TÀI KHOẢN
+              {loading ? "ĐANG XỬ LÝ..." : "TẠO TÀI KHOẢN"}
           </button>
           <button
             onClick={() => navigate("/login")}

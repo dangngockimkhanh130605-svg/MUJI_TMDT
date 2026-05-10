@@ -20,6 +20,7 @@ export default function AdminProducts() {
     const [deleteId, setDeleteId] = useState(null);
     const [toast, setToast] = useState("");
     const [showDropdown, setShowDropdown] = useState(false);
+    const [uploading, setUploading] = useState(false);
 
     const fetchProducts = async () => {
         const res = await getProducts({ search });
@@ -62,6 +63,26 @@ export default function AdminProducts() {
         setTimeout(() => setToast(""), 3000);
     };
 
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        setUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append("image", file);
+            const res = await fetch("http://localhost:5001/api/upload", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+            body: formData,
+            });
+            const data = await res.json();
+            setForm({ ...form, images: [data.url] });
+        } catch {
+            setError("Upload ảnh thất bại");
+        }
+        setUploading(false);
+    };
+
     return (
         <div className="min-h-screen flex flex-col bg-gray-50">
             {/* NAVBAR */}
@@ -86,6 +107,9 @@ export default function AdminProducts() {
                         </span>
                         <span onClick={() => navigate("/admin?page=SETTINGS")} className="cursor-pointer pb-1 text-gray-400 hover:text-gray-700 transition">
                             SETTINGS
+                        </span>
+                        <span onClick={() => navigate("/admin/orders")} className="cursor-pointer pb-1 text-gray-400 hover:text-gray-700 transition">
+                            ORDERS
                         </span>
                     </nav>
                 </div>
@@ -230,6 +254,27 @@ export default function AdminProducts() {
                                     />
                                 </div>
                             ))}
+                        </div>
+
+                        {/* Upload ảnh */}
+                        <div className="mb-4">
+                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Hình ảnh sản phẩm
+                            </label>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="w-full border border-gray-300 px-3 py-2 text-sm mt-1 focus:outline-none"
+                                onChange={handleImageUpload}
+                            />
+                            {uploading && <p className="text-xs text-gray-400 mt-1">⏳ Đang upload...</p>}
+                            {form.images?.[0] && (
+                                <img
+                                src={form.images[0]}
+                                alt="preview"
+                                className="mt-2 h-32 w-full object-cover border border-gray-200"
+                                />
+                            )}
                         </div>
 
                         <div className="mb-4">

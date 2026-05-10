@@ -2,6 +2,7 @@ import { useState } from "react";
 import { login } from "@/services/authService";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search, ShoppingBag, Eye, EyeOff } from "lucide-react";
+import MUJI from "@/assets/MUJI.jpg";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -44,7 +45,7 @@ export default function Login() {
         {/* LEFT */}
         <div className="w-1/2 relative bg-gray-100 hidden md:block">
           <img
-            src="https://images.unsplash.com/photo-1600369671738-58f5a1c7b4ba?w=800"
+            src={MUJI}
             alt="MUJI"
             className="absolute inset-0 w-full h-full object-cover"
           />

@@ -1,32 +1,92 @@
 import { useNavigate } from "react-router-dom";
 import { Search, ShoppingBag, User } from "lucide-react";
+import { useCart } from "@/context/CartContext";
+import { useState, useEffect, useRef} from "react";
 
 export default function Home() {
     const navigate = useNavigate();
+    const { cartCount } = useCart();
+    const [showDropdown, setShowDropdown] = useState(false);
+    const dropdownRef = useRef(null);
+    const isLoggedIn = !!localStorage.getItem("token");
+
+    useEffect(() => {
+        const handler = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setShowDropdown(false);
+            }
+        };
+        document.addEventListener("click", handler);
+        return () => document.removeEventListener("click", handler);
+    }, []);
 
     return (
         <div className="min-h-screen flex flex-col">
             {/* NAVBAR */}
             <header className="flex items-center justify-between px-8 py-4 border-b border-gray-200">
-                <span className="text-xl font-bold tracking-widest cursor-pointer" style={{ color: "#80001C" }}>
+                <span
+                    onClick={() => navigate("/home")}
+                    className="text-xl font-bold tracking-widest cursor-pointer"
+                    style={{ color: "#80001C" }}
+                    >
                     MUJI
                 </span>
                 <nav className="hidden md:flex items-center gap-8 text-xs tracking-widest text-gray-600">
-                    <nav className="hidden md:flex items-center gap-8 text-xs tracking-widest text-gray-600">
-                        <span onClick={() => navigate("/products?category=apparel")} className="cursor-pointer hover:text-gray-900">APPAREL</span>
-                        <span onClick={() => navigate("/products?category=household")} className="cursor-pointer hover:text-gray-900">HOUSEHOLD</span>
-                        <span onClick={() => navigate("/products?category=food")} className="cursor-pointer hover:text-gray-900">FOOD</span>
-                        <span onClick={() => navigate("/products?category=furniture")} className="cursor-pointer hover:text-gray-900">FURNITURE</span>
-                    </nav>
+                    <span onClick={() => navigate("/products?category=apparel")} className="cursor-pointer hover:text-gray-900">APPAREL</span>
+                    <span onClick={() => navigate("/products?category=household")} className="cursor-pointer hover:text-gray-900">HOUSEHOLD</span>
+                    <span onClick={() => navigate("/products?category=food")} className="cursor-pointer hover:text-gray-900">FOOD</span>
+                    <span onClick={() => navigate("/products?category=furniture")} className="cursor-pointer hover:text-gray-900">FURNITURE</span>
                 </nav>
                 <div className="flex items-center gap-4">
                     <button><Search size={20} style={{ color: "#80001C" }} strokeWidth={1.5} /></button>
-                    <button onClick={() => navigate("/cart")}>
+                    <button onClick={() => navigate("/cart")} className="relative">
                         <ShoppingBag size={20} style={{ color: "#80001C" }} strokeWidth={1.5} />
+                        {cartCount > 0 && (
+                            <span className="absolute -top-2 -right-2 w-4 h-4 rounded-full text-white text-xs flex items-center justify-center font-bold"
+                            style={{ backgroundColor: "#80001C", fontSize: "10px" }}>
+                            {cartCount > 9 ? "9+" : cartCount}
+                            </span>
+                        )}
                     </button>
-                    <button onClick={() => navigate("/account")}>
-                        <User size={20} style={{ color: "#80001C" }} strokeWidth={1.5} />
-                    </button>
+
+                    {isLoggedIn ? (
+                        <div ref={dropdownRef} className="relative">
+                            <button onClick={(e) => { e.stopPropagation(); setShowDropdown(!showDropdown); }}>
+                                <User size={20} style={{ color: "#80001C" }} strokeWidth={1.5} />
+                            </button>
+                            {showDropdown && (
+                                <div className="absolute right-0 top-8 bg-white shadow-lg w-48 z-50 border border-gray-100">
+                                    {[
+                                        { label: "Account Information", path: "/account" },
+                                        { label: "My Orders", path: "/orders" },
+                                    ].map(item => (
+                                        <button key={item.path} onClick={() => { navigate(item.path); setShowDropdown(false); }}
+                                        className="w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 text-left">
+                                        {item.label}
+                                        </button>
+                                    ))}
+                                    <div className="border-t border-gray-100">
+                                        <button onClick={() => { localStorage.clear(); navigate("/login"); }}
+                                        className="w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 text-left">
+                                        Logout
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-3 text-xs tracking-widest">
+                            <button onClick={() => navigate("/login")}
+                                className="text-gray-600 hover:text-gray-900 transition">
+                                ĐĂNG NHẬP
+                            </button>
+                            <button onClick={() => navigate("/register")}
+                                className="text-white px-4 py-2 hover:opacity-90 transition"
+                                style={{ backgroundColor: "#80001C" }}>
+                                ĐĂNG KÝ
+                            </button>
+                        </div>
+                    )}
                 </div>
             </header>
 
