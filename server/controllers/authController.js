@@ -51,40 +51,40 @@ exports.register = async (req, res) => {
 
     // Tạo user (chưa verified)
     const user = await User.create({
-      name, email,
-      password: hashedPassword,
-      phone, dob, gender,
-      newsletter: newsletter || false,
-      isVerified: false,
-      verifyToken,
-      verifyTokenExpire,
+        name, email,
+        password: hashedPassword,
+        phone, dob, gender,
+        newsletter: newsletter || false,
+        isVerified: true,
+        verifyToken: undefined,
+        verifyTokenExpire: undefined,
     });
 
     // Gửi email xác nhận
-    const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${verifyToken}`;
-    await sendEmail({
-      to: email,
-      subject: "Xác nhận tài khoản MUJI Online Store",
-      html: `
-        <div style="font-family: Helvetica, Arial, sans-serif; max-width: 500px; margin: auto; padding: 40px;">
-          <h2 style="color: #80001C; letter-spacing: 2px;">MUJI</h2>
-          <h3>Xác nhận tài khoản của bạn</h3>
-          <p>Chào <strong>${name}</strong>,</p>
-          <p>Cảm ơn bạn đã đăng ký tài khoản MUJI Online Store. Vui lòng bấm nút bên dưới để xác nhận email.</p>
-          <a href="${verifyUrl}"
-            style="display: inline-block; margin: 20px 0; padding: 12px 32px;
-              background-color: #80001C; color: white; text-decoration: none;
-              font-weight: bold; letter-spacing: 1px;">
-            XÁC NHẬN TÀI KHOẢN
-          </a>
-          <p style="color: #999; font-size: 12px;">Link có hiệu lực trong 24 giờ. Nếu bạn không đăng ký, hãy bỏ qua email này.</p>
-          <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
-          <p style="color: #999; font-size: 11px;">© RYOHIN KEIKAKU CO., LTD.</p>
-        </div>
-      `,
-    });
+    // const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${verifyToken}`;
+    // await sendEmail({
+    //   to: email,
+    //   subject: "Xác nhận tài khoản MUJI Online Store",
+    //   html: `
+    //     <div style="font-family: Helvetica, Arial, sans-serif; max-width: 500px; margin: auto; padding: 40px;">
+    //       <h2 style="color: #80001C; letter-spacing: 2px;">MUJI</h2>
+    //       <h3>Xác nhận tài khoản của bạn</h3>
+    //       <p>Chào <strong>${name}</strong>,</p>
+    //       <p>Cảm ơn bạn đã đăng ký tài khoản MUJI Online Store. Vui lòng bấm nút bên dưới để xác nhận email.</p>
+    //       <a href="${verifyUrl}"
+    //         style="display: inline-block; margin: 20px 0; padding: 12px 32px;
+    //           background-color: #80001C; color: white; text-decoration: none;
+    //           font-weight: bold; letter-spacing: 1px;">
+    //         XÁC NHẬN TÀI KHOẢN
+    //       </a>
+    //       <p style="color: #999; font-size: 12px;">Link có hiệu lực trong 24 giờ. Nếu bạn không đăng ký, hãy bỏ qua email này.</p>
+    //       <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+    //       <p style="color: #999; font-size: 11px;">© RYOHIN KEIKAKU CO., LTD.</p>
+    //     </div>
+    //   `,
+    // });
 
-    res.json({ msg: "Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản." });
+    res.json({ msg: "Đăng ký thành công! Bạn có thể đăng nhập ngay." });
 
   } catch (err) {
     console.log(err);
