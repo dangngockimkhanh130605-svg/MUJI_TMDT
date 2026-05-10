@@ -1,3 +1,5 @@
+const User = require("./models/User"); 
+const bcrypt = require("bcryptjs");
 const mongoose = require("mongoose");
 const Product = require("./models/Product");
 require("dotenv").config();
@@ -52,10 +54,30 @@ const products = [
     { name: "Hinoki Wood Bath Mat", description: "Thảm tắm gỗ hinoki Nhật Bản, kháng khuẩn và thơm tự nhiên.", price: 650000, category: "furniture", subCategory: "Bathroom", material: "Hinoki Wood", stock: 40, itemNo: "4550182240040", isBestSeller: false, isNewArrival: false, images: ["https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=500"] },
 ];
 
-mongoose.connect("mongodb://mongo:27017/muji_shop").then(async () => {
+mongoose.connect(process.env.MONGO_URI).then(async () => {
+    // Xóa dữ liệu cũ
     await Product.deleteMany({});
+    await User.deleteMany({ email: "admin@muji.vn" });
+
+    // Seed products
     await Product.insertMany(products);
+
+    // Tạo admin mặc định
+    const hashedPassword = await bcrypt.hash("Admin@123", 10);
+
+    await User.create({
+        name: "Administrator",
+        email: "admin@muji.vn",
+        password: hashedPassword,
+        role: "admin",
+        isVerified: true,
+    });
+
     console.log(`✅ Seed thành công ${products.length} sản phẩm!`);
+    console.log("✅ Admin created:");
+    console.log("Email: admin@muji.vn");
+    console.log("Password: Admin@123");
+
     process.exit();
 }).catch(err => {
     console.log("❌ Lỗi:", err);
