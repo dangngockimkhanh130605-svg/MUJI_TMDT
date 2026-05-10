@@ -66,20 +66,41 @@ export default function AdminProducts() {
     const handleImageUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
+
         setUploading(true);
+        setError("");
+
         try {
             const formData = new FormData();
             formData.append("image", file);
-            const res = await fetch("import.meta.env.VITE_API_URL/api/upload", {
-            method: "POST",
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-            body: formData,
-            });
+
+            const res = await fetch(
+                `${import.meta.env.VITE_API_URL}/api/upload`,
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                    body: formData,
+                }
+            );
+
             const data = await res.json();
-            setForm({ ...form, images: [data.url] });
-        } catch {
-            setError("Upload ảnh thất bại");
+
+            if (!res.ok) {
+                throw new Error(data.msg || "Upload ảnh thất bại");
+            }
+
+            setForm(prev => ({
+                ...prev,
+                images: [data.url],
+            }));
+
+        } catch (err) {
+            console.error(err);
+            setError(err.message || "Upload ảnh thất bại");
         }
+
         setUploading(false);
     };
 
@@ -108,7 +129,7 @@ export default function AdminProducts() {
                         <span onClick={() => navigate("/admin?page=SETTINGS")} className="cursor-pointer pb-1 text-gray-400 hover:text-gray-700 transition">
                             SETTINGS
                         </span>
-                        <span onClick={() => navigate("/admin/orders")} className="cursor-pointer pb-1 text-gray-400 hover:text-gray-700 transition">
+                        <span onClick={() => navigate("/admin?page=ORDERS")} className="cursor-pointer pb-1 text-gray-400 hover:text-gray-700 transition">
                             ORDERS
                         </span>
                     </nav>
